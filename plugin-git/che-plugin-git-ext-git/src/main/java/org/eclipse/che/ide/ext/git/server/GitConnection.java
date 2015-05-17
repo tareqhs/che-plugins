@@ -32,6 +32,8 @@ import org.eclipse.che.ide.ext.git.shared.MergeResult;
 import org.eclipse.che.ide.ext.git.shared.MoveRequest;
 import org.eclipse.che.ide.ext.git.shared.PullRequest;
 import org.eclipse.che.ide.ext.git.shared.PushRequest;
+import org.eclipse.che.ide.ext.git.shared.RebaseRequest;
+import org.eclipse.che.ide.ext.git.shared.RebaseResult;
 import org.eclipse.che.ide.ext.git.shared.Remote;
 import org.eclipse.che.ide.ext.git.shared.RemoteAddRequest;
 import org.eclipse.che.ide.ext.git.shared.RemoteListRequest;
@@ -231,6 +233,16 @@ public interface GitConnection extends Closeable {
      */
     MergeResult merge(MergeRequest request) throws GitException;
 
+    /**
+     * Rebase the current head.
+     * 
+     * @param request
+     *            The rebase request.
+     * @return The result of the rebase operation.
+     * @throws GitException
+     */
+    RebaseResult rebase(RebaseRequest request) throws GitException;
+    
     /**
      * Move or rename file or directory.
      *

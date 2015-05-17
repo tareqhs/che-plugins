@@ -55,6 +55,8 @@ import org.eclipse.che.ide.ext.git.shared.MergeResult;
 import org.eclipse.che.ide.ext.git.shared.MoveRequest;
 import org.eclipse.che.ide.ext.git.shared.PullRequest;
 import org.eclipse.che.ide.ext.git.shared.PushRequest;
+import org.eclipse.che.ide.ext.git.shared.RebaseRequest;
+import org.eclipse.che.ide.ext.git.shared.RebaseResult;
 import org.eclipse.che.ide.ext.git.shared.Remote;
 import org.eclipse.che.ide.ext.git.shared.RemoteAddRequest;
 import org.eclipse.che.ide.ext.git.shared.RemoteListRequest;
@@ -751,5 +753,10 @@ public class NativeGitConnection implements GitConnection {
     @Override
     public void setOutputLineConsumerFactory(LineConsumerFactory gitOutputPublisherFactory) {
         nativeGit.setOutputLineConsumerFactory(gitOutputPublisherFactory);
+    }
+
+    @Override
+    public RebaseResult rebase(RebaseRequest request) throws GitException {
+        throw new GitException("Unsupported operation: rebase");
     }
 }

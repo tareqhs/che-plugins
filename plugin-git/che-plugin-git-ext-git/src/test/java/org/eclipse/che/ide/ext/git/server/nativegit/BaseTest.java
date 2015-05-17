@@ -70,6 +70,8 @@ public abstract class BaseTest {
 
     @Mock
     private CredentialsLoader loader;
+    
+    protected static final String INITIAL_FILE_NAME = "README.txt";
 
     @BeforeMethod
     public void initRepository() throws Exception {
@@ -81,9 +83,9 @@ public abstract class BaseTest {
         //setup connection
         user = newDTO(GitUser.class).withName("test_name").withEmail("test@email");
         connectionFactory = new JGitConnectionFactory(null);
-        connection = connectionFactory.getConnection(repository, user, NULL);
-        addFile(repository.toPath(), "README.txt", CONTENT);
-        connection.add(newDTO(AddRequest.class).withFilepattern(Arrays.asList("README.txt")));
+        connection = createConnection(repository);
+        addFile(repository.toPath(), INITIAL_FILE_NAME, CONTENT);
+        connection.add(newDTO(AddRequest.class).withFilepattern(Arrays.asList(INITIAL_FILE_NAME)));
         connection.commit(newDTO(CommitRequest.class).withMessage("Initial commit"));
         forClean.add(connection.getWorkingDir());
         EnvironmentContext.getCurrent().setUser(
@@ -149,6 +151,10 @@ public abstract class BaseTest {
 
     protected GitConnection getConnection() {
         return connection;
+    }
+
+    protected GitConnection createConnection(File gitWorkingDir) throws GitException {
+        return connectionFactory.getConnection(gitWorkingDir, user, NULL);
     }
 
     protected <T> T newDTO(Class<T> dtoInterface) {
