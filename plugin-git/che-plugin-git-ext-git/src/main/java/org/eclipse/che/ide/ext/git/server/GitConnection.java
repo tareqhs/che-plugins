@@ -40,6 +40,7 @@ import org.eclipse.che.ide.ext.git.shared.RemoteListRequest;
 import org.eclipse.che.ide.ext.git.shared.RemoteReference;
 import org.eclipse.che.ide.ext.git.shared.RemoteUpdateRequest;
 import org.eclipse.che.ide.ext.git.shared.ResetRequest;
+import org.eclipse.che.ide.ext.git.shared.RevertRequest;
 import org.eclipse.che.ide.ext.git.shared.Revision;
 import org.eclipse.che.ide.ext.git.shared.RmRequest;
 import org.eclipse.che.ide.ext.git.shared.Status;
@@ -172,6 +173,17 @@ public interface GitConnection extends Closeable {
      * @see DiffRequest
      */
     DiffPage diff(DiffRequest request) throws GitException;
+
+    /**
+     * Reverts a list of commits given in the request. 
+     *
+     * @param request
+     *         revert request
+     * @throws GitException
+     *         if any error occurs
+     * @see RevertRequest
+     */
+    void revert(RevertRequest request) throws GitException;
 
     /**
      * Fetch data from remote repository.

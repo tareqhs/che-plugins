@@ -59,6 +59,7 @@ import org.eclipse.che.ide.ext.git.shared.RemoteListRequest;
 import org.eclipse.che.ide.ext.git.shared.RemoteReference;
 import org.eclipse.che.ide.ext.git.shared.RemoteUpdateRequest;
 import org.eclipse.che.ide.ext.git.shared.ResetRequest;
+import org.eclipse.che.ide.ext.git.shared.RevertRequest;
 import org.eclipse.che.ide.ext.git.shared.Revision;
 import org.eclipse.che.ide.ext.git.shared.RmRequest;
 import org.eclipse.che.ide.ext.git.shared.Status;
@@ -82,6 +83,7 @@ import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RebaseCommand;
 import org.eclipse.jgit.api.ResetCommand;
+import org.eclipse.jgit.api.RevertCommand;
 import org.eclipse.jgit.api.RmCommand;
 import org.eclipse.jgit.api.TagCommand;
 import org.eclipse.jgit.api.errors.CheckoutConflictException;
@@ -94,6 +96,7 @@ import org.eclipse.jgit.errors.NoWorkTreeException;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.RefUpdate;
@@ -137,7 +140,7 @@ public class JGitConnection implements GitConnection {
         this.user = user;
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#add(org.exoplatform.ide.git.shared.AddRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#add(org,eclipse.che.ide.git.shared.AddRequest) */
     @Override
     public void add(AddRequest request) throws GitException {
         AddCommand addCommand = getGit().add().setUpdate(request.isUpdate());
@@ -157,7 +160,11 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#branchCheckout(org.exoplatform.ide.git.shared.BranchCheckoutRequest) */
+    /**
+     * @see org 
+     *      ,eclipse.che.ide.git.server.GitConnection#branchCheckout(org,eclipse.che.ide.git.shared.BranchCheckoutRequest
+     *      )
+     */
     @Override
     public void branchCheckout(BranchCheckoutRequest request) throws GitException {
         CheckoutCommand checkoutCommand = getGit().checkout();
@@ -179,7 +186,10 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#branchCreate(org.exoplatform.ide.git.shared.BranchCreateRequest) */
+    /**
+     * @see org
+     *      ,eclipse.che.ide.git.server.GitConnection#branchCreate(org,eclipse.che.ide.git.shared.BranchCreateRequest)
+     */
     @Override
     public Branch branchCreate(BranchCreateRequest request) throws GitException {
         CreateBranchCommand createBranchCommand = getGit().branchCreate().setName(request.getName());
@@ -198,7 +208,10 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#branchDelete(org.exoplatform.ide.git.shared.BranchDeleteRequest) */
+    /**
+     * @see org
+     *      ,eclipse.che.ide.git.server.GitConnection#branchDelete(org,eclipse.che.ide.git.shared.BranchDeleteRequest)
+     */
     @Override
     public void branchDelete(BranchDeleteRequest request) throws GitException {
         try {
@@ -208,7 +221,7 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#branchRename(String oldName, String newName) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#branchRename(String oldName, String newName) */
     @Override
     public void branchRename(String oldName, String newName) throws GitException {
         try {
@@ -218,7 +231,7 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#branchList(org.exoplatform.ide.git.shared.BranchListRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#branchList(org,eclipse.che.ide.git.shared.BranchListRequest) */
     @Override
     public List<Branch> branchList(BranchListRequest request) throws GitException {
         String listMode = request.getListMode();
@@ -267,7 +280,7 @@ public class JGitConnection implements GitConnection {
         return branches;
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#clone(org.exoplatform.ide.git.shared.CloneRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#clone(org,eclipse.che.ide.git.shared.CloneRequest) */
     public void clone(CloneRequest request) throws GitException {
         try {
             if (request.getRemoteName() == null) {
@@ -308,7 +321,7 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#commit(org.exoplatform.ide.git.shared.CommitRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#commit(org,eclipse.che.ide.git.shared.CommitRequest) */
     @Override
     public Revision commit(CommitRequest request) throws GitException {
         try {
@@ -374,13 +387,36 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#diff(org.exoplatform.ide.git.shared.DiffRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#diff(org,eclipse.che.ide.git.shared.DiffRequest) */
     @Override
     public DiffPage diff(DiffRequest request) throws GitException {
         return new JGitDiffPage(request, repository);
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#fetch(org.exoplatform.ide.git.shared.FetchRequest) */
+    @Override
+    public void revert(RevertRequest request) throws GitException {
+        Git git = getGit();
+        // Translate to a revert command
+        try {
+            RevertCommand revCmd = git.revert();
+            // Resolve reference specifications
+            if (request.getRefSpec() != null) {
+                for (String ref : request.getRefSpec()) {
+                    ObjectId refId = git.getRepository().resolve(ref);
+                    if (refId == null) {
+                        throw new GitException("Bad refspec " + ref);
+                    }
+                    revCmd.include(refId);
+                }
+            }
+            revCmd.call();
+        } catch (IOException | GitAPIException e) {
+            throw new GitException(e.getMessage(), e);
+        }
+
+    }
+
+    /** @see org,eclipse.che.ide.git.server.GitConnection#fetch(org,eclipse.che.ide.git.shared.FetchRequest) */
     @Override
     public void fetch(FetchRequest request) throws GitException {
         try {
@@ -434,7 +470,7 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#init(org.exoplatform.ide.git.shared.InitRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#init(org,eclipse.che.ide.git.shared.InitRequest) */
     @Override
     public void init(InitRequest request) throws GitException {
         File workDir = repository.getWorkTree();
@@ -470,7 +506,7 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#log(org.exoplatform.ide.git.shared.LogRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#log(org,eclipse.che.ide.git.shared.LogRequest) */
     @Override
     public LogPage log(LogRequest request) throws GitException {
         LogCommand logCommand = getGit().log();
@@ -494,7 +530,7 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#log(org.exoplatform.ide.git.shared.LogRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#log(org,eclipse.che.ide.git.shared.LogRequest) */
     @Override
     public List<GitUser> getCommiters() throws GitException {
         List<GitUser> gitUsers = new ArrayList<GitUser>();
@@ -518,7 +554,7 @@ public class JGitConnection implements GitConnection {
         return gitUsers;
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#merge(org.exoplatform.ide.git.shared.MergeRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#merge(org,eclipse.che.ide.git.shared.MergeRequest) */
     @Override
     public MergeResult merge(MergeRequest request) throws GitException {
         try {
@@ -578,13 +614,13 @@ public class JGitConnection implements GitConnection {
         return new JGitRebaseResult(jgitResult);
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#mv(org.exoplatform.ide.git.shared.MoveRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#mv(org,eclipse.che.ide.git.shared.MoveRequest) */
     @Override
     public void mv(MoveRequest request) throws GitException {
         throw new RuntimeException("Not implemented yet. ");
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#pull(org.exoplatform.ide.git.shared.PullRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#pull(org,eclipse.che.ide.git.shared.PullRequest) */
     @Override
     public void pull(PullRequest request) throws GitException {
         try {
@@ -676,7 +712,7 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#push(org.exoplatform.ide.git.shared.PushRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#push(org,eclipse.che.ide.git.shared.PushRequest) */
     @Override
     public void push(PushRequest request) throws GitException {
         StringBuilder message = new StringBuilder();
@@ -728,7 +764,7 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#remoteAdd(org.exoplatform.ide.git.shared.RemoteAddRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#remoteAdd(org,eclipse.che.ide.git.shared.RemoteAddRequest) */
     @Override
     public void remoteAdd(RemoteAddRequest request) throws GitException {
         String remoteName = request.getName();
@@ -782,7 +818,7 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#remoteDelete(java.lang.String) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#remoteDelete(java.lang.String) */
     @Override
     public void remoteDelete(String name) throws GitException {
         StoredConfig config = repository.getConfig();
@@ -817,7 +853,7 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#remoteList(org.exoplatform.ide.git.shared.RemoteListRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#remoteList(org,eclipse.che.ide.git.shared.RemoteListRequest) */
     @Override
     public List<Remote> remoteList(RemoteListRequest request) throws GitException {
         StoredConfig config = repository.getConfig();
@@ -841,7 +877,10 @@ public class JGitConnection implements GitConnection {
         return result;
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#remoteUpdate(org.exoplatform.ide.git.shared.RemoteUpdateRequest) */
+    /**
+     * @see org
+     *      ,eclipse.che.ide.git.server.GitConnection#remoteUpdate(org,eclipse.che.ide.git.shared.RemoteUpdateRequest)
+     */
     @Override
     public void remoteUpdate(RemoteUpdateRequest request) throws GitException {
         String remoteName = request.getName();
@@ -941,7 +980,7 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#reset(org.exoplatform.ide.git.shared.ResetRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#reset(org,eclipse.che.ide.git.shared.ResetRequest) */
     @Override
     public void reset(ResetRequest request) throws GitException {
         try {
@@ -973,7 +1012,7 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#rm(org.exoplatform.ide.git.shared.RmRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#rm(org,eclipse.che.ide.git.shared.RmRequest) */
     @Override
     public void rm(RmRequest request) throws GitException {
         List<String> files = request.getItems();
@@ -995,7 +1034,7 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#status(org.exoplatform.ide.git.shared.StatusRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#status(org,eclipse.che.ide.git.shared.StatusRequest) */
     @Override
     public Status status(StatusFormat format) throws GitException {
         org.eclipse.jgit.api.Status jgitStatus;
@@ -1042,7 +1081,7 @@ public class JGitConnection implements GitConnection {
         return list;
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#tagCreate(org.exoplatform.ide.git.shared.TagCreateRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#tagCreate(org,eclipse.che.ide.git.shared.TagCreateRequest) */
     @Override
     public Tag tagCreate(TagCreateRequest request) throws GitException {
         String commit = request.getCommit();
@@ -1077,7 +1116,7 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#tagDelete(org.exoplatform.ide.git.shared.TagDeleteRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#tagDelete(org,eclipse.che.ide.git.shared.TagDeleteRequest) */
     @Override
     public void tagDelete(TagDeleteRequest request) throws GitException {
         try {
@@ -1100,7 +1139,7 @@ public class JGitConnection implements GitConnection {
         }
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#tagList(org.exoplatform.ide.git.shared.TagListRequest) */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#tagList(org,eclipse.che.ide.git.shared.TagListRequest) */
     @Override
     public List<Tag> tagList(TagListRequest request) throws GitException {
         String patternStr = request.getPattern();
@@ -1130,12 +1169,12 @@ public class JGitConnection implements GitConnection {
         return tags;
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#getUser() */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#getUser() */
     public GitUser getUser() {
         return user;
     }
 
-    /** @see org.exoplatform.ide.git.server.GitConnection#close() */
+    /** @see org,eclipse.che.ide.git.server.GitConnection#close() */
     @Override
     public void close() {
         repository.close();
