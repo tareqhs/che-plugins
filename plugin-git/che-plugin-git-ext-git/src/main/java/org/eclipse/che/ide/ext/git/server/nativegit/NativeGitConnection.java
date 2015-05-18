@@ -63,6 +63,7 @@ import org.eclipse.che.ide.ext.git.shared.RemoteListRequest;
 import org.eclipse.che.ide.ext.git.shared.RemoteReference;
 import org.eclipse.che.ide.ext.git.shared.RemoteUpdateRequest;
 import org.eclipse.che.ide.ext.git.shared.ResetRequest;
+import org.eclipse.che.ide.ext.git.shared.RevertRequest;
 import org.eclipse.che.ide.ext.git.shared.Revision;
 import org.eclipse.che.ide.ext.git.shared.RmRequest;
 import org.eclipse.che.ide.ext.git.shared.Status;
@@ -71,7 +72,6 @@ import org.eclipse.che.ide.ext.git.shared.Tag;
 import org.eclipse.che.ide.ext.git.shared.TagCreateRequest;
 import org.eclipse.che.ide.ext.git.shared.TagDeleteRequest;
 import org.eclipse.che.ide.ext.git.shared.TagListRequest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -758,5 +758,11 @@ public class NativeGitConnection implements GitConnection {
     @Override
     public RebaseResult rebase(RebaseRequest request) throws GitException {
         throw new GitException("Unsupported operation: rebase");
+    }
+
+    @Override
+    public void revert(RevertRequest request) throws GitException {
+        throw new GitException("Unsupported operation: revert");
+        
     }
 }
