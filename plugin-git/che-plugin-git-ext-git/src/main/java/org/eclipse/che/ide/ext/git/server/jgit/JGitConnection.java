@@ -38,6 +38,8 @@ import org.eclipse.che.ide.ext.git.shared.BranchCheckoutRequest;
 import org.eclipse.che.ide.ext.git.shared.BranchCreateRequest;
 import org.eclipse.che.ide.ext.git.shared.BranchDeleteRequest;
 import org.eclipse.che.ide.ext.git.shared.BranchListRequest;
+import org.eclipse.che.ide.ext.git.shared.CherryPickRequest;
+import org.eclipse.che.ide.ext.git.shared.CherryPickResult;
 import org.eclipse.che.ide.ext.git.shared.CloneRequest;
 import org.eclipse.che.ide.ext.git.shared.CommitRequest;
 import org.eclipse.che.ide.ext.git.shared.DiffRequest;
@@ -70,6 +72,7 @@ import org.eclipse.che.ide.ext.git.shared.TagDeleteRequest;
 import org.eclipse.che.ide.ext.git.shared.TagListRequest;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
+import org.eclipse.jgit.api.CherryPickCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.CreateBranchCommand;
@@ -395,17 +398,13 @@ public class JGitConnection implements GitConnection {
 
     @Override
     public void revert(RevertRequest request) throws GitException {
-        Git git = getGit();
         // Translate to a revert command
         try {
-            RevertCommand revCmd = git.revert();
+            RevertCommand revCmd = getGit().revert();
             // Resolve reference specifications
             if (request.getRefSpec() != null) {
                 for (String ref : request.getRefSpec()) {
-                    ObjectId refId = git.getRepository().resolve(ref);
-                    if (refId == null) {
-                        throw new GitException("Bad refspec " + ref);
-                    }
+                    ObjectId refId = resolveRefSpecItem(ref);
                     revCmd.include(refId);
                 }
             }
@@ -413,7 +412,26 @@ public class JGitConnection implements GitConnection {
         } catch (IOException | GitAPIException e) {
             throw new GitException(e.getMessage(), e);
         }
+    }
 
+    @Override
+    public CherryPickResult cherryPick(CherryPickRequest request) throws GitException {
+        // Translate to a revert command
+        org.eclipse.jgit.api.CherryPickResult jgitResult;
+        try {
+            CherryPickCommand cpCmd = getGit().cherryPick();
+            // Resolve reference specifications
+            if (request.getRefSpec() != null) {
+                for (String ref : request.getRefSpec()) {
+                    ObjectId refId = resolveRefSpecItem(ref);
+                    cpCmd.include(refId);
+                }
+            }
+            jgitResult = cpCmd.call();
+        } catch (IOException | GitAPIException e) {
+            throw new GitException(e.getMessage(), e);
+        }
+        return new JGitCherryPickResult(jgitResult);
     }
 
     /** @see org,eclipse.che.ide.git.server.GitConnection#fetch(org,eclipse.che.ide.git.shared.FetchRequest) */
@@ -1252,6 +1270,19 @@ public class JGitConnection implements GitConnection {
     @Override
     public void setOutputLineConsumerFactory(LineConsumerFactory outputPublisherFactory) {
         // XXX nothing to do, not outputs are produced by JGit
+    }
+
+    /**
+     * Resolve the given textual representation of a refspec into an logical JGit ObjectID.
+     * 
+     * Throws an exception if the resolving fails.
+     */
+    private ObjectId resolveRefSpecItem(String refSpecItem) throws GitException, IOException {
+        ObjectId refId = getGit().getRepository().resolve(refSpecItem);
+        if (refId == null) {
+            throw new GitException("Bad refspec " + refSpecItem);
+        }
+        return refId;
     }
 
     private Git getGit() {

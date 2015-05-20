@@ -42,6 +42,8 @@ import org.eclipse.che.ide.ext.git.shared.BranchCheckoutRequest;
 import org.eclipse.che.ide.ext.git.shared.BranchCreateRequest;
 import org.eclipse.che.ide.ext.git.shared.BranchDeleteRequest;
 import org.eclipse.che.ide.ext.git.shared.BranchListRequest;
+import org.eclipse.che.ide.ext.git.shared.CherryPickRequest;
+import org.eclipse.che.ide.ext.git.shared.CherryPickResult;
 import org.eclipse.che.ide.ext.git.shared.CloneRequest;
 import org.eclipse.che.ide.ext.git.shared.CommitRequest;
 import org.eclipse.che.ide.ext.git.shared.DiffRequest;
@@ -764,5 +766,10 @@ public class NativeGitConnection implements GitConnection {
     public void revert(RevertRequest request) throws GitException {
         throw new GitException("Unsupported operation: revert");
         
+    }
+    
+    @Override
+    public CherryPickResult cherryPick(CherryPickRequest request) throws GitException {
+        throw new GitException("Unsupported operation: cherry-pick");
     }
 }

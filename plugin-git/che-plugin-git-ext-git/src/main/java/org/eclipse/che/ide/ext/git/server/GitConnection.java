@@ -19,6 +19,8 @@ import org.eclipse.che.ide.ext.git.shared.BranchCheckoutRequest;
 import org.eclipse.che.ide.ext.git.shared.BranchCreateRequest;
 import org.eclipse.che.ide.ext.git.shared.BranchDeleteRequest;
 import org.eclipse.che.ide.ext.git.shared.BranchListRequest;
+import org.eclipse.che.ide.ext.git.shared.CherryPickRequest;
+import org.eclipse.che.ide.ext.git.shared.CherryPickResult;
 import org.eclipse.che.ide.ext.git.shared.CloneRequest;
 import org.eclipse.che.ide.ext.git.shared.CommitRequest;
 import org.eclipse.che.ide.ext.git.shared.DiffRequest;
@@ -254,6 +256,16 @@ public interface GitConnection extends Closeable {
      * @throws GitException
      */
     RebaseResult rebase(RebaseRequest request) throws GitException;
+
+    /**
+     * Cherry-pick some commits.
+     * 
+     * @param request
+     *            The rebase request.
+     * @return The result of the rebase operation.
+     * @throws GitException
+     */
+    CherryPickResult cherryPick(CherryPickRequest request) throws GitException;
     
     /**
      * Move or rename file or directory.

@@ -19,8 +19,13 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.treewalk.AbstractTreeIterator;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -50,6 +55,42 @@ public class JGitBaseTest extends BaseTest {
 
     protected final Git getGit() {
         return _git;
+    }
+
+    /**
+     * Clone the main test repository.
+     */
+    protected Git cloneMainRepo(String newRepoDir) throws Exception {
+        // Create the tracking repository
+        File trackingRepoDir = new File(getTarget().toFile(), newRepoDir);
+        forClean.add(trackingRepoDir);
+        // Initialize a tracking repository
+        Git git = Git.cloneRepository().setURI(_git.getRepository().getDirectory().getAbsolutePath())
+                .setDirectory(trackingRepoDir).call();
+        return git;
+    }
+
+    /**
+     * Create a JGit tree iterator for a specific revision.
+     */
+    static AbstractTreeIterator createRevTreeIterator(String rev, Repository repository) throws Exception {
+        // This Based on a code taken from jgit-cookbook.
+        RevWalk walk = new RevWalk(repository);
+        RevCommit commit = walk.parseCommit(repository.resolve(rev));
+        RevTree tree = walk.parseTree(commit.getTree().getId());
+        CanonicalTreeParser oldTreeParser = new CanonicalTreeParser();
+        ObjectReader oldReader = repository.newObjectReader();
+        try {
+            oldTreeParser.reset(oldReader, tree.getId());
+        } finally {
+            oldReader.release();
+        }
+        walk.dispose();
+        return oldTreeParser;
+    }
+
+    protected AbstractTreeIterator createRevTreeIterator(String rev) throws Exception {
+        return createRevTreeIterator(rev, getGit().getRepository());
     }
 
     /**
