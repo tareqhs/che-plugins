@@ -8,7 +8,7 @@
  * Contributors:
  *   Codenvy, S.A. - initial API and implementation
  *******************************************************************************/
-package org.eclipse.che.ide.ext.git.server.nativegit;
+package org.eclipse.che.ide.ext.git.server.jgit;
 
 import static org.testng.Assert.assertEquals;
 
@@ -22,10 +22,8 @@ import org.eclipse.che.ide.ext.git.shared.RebaseRequest;
 import org.eclipse.che.ide.ext.git.shared.RebaseResult;
 import org.eclipse.che.ide.ext.git.shared.RebaseResult.RebaseStatus;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Repository;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -33,9 +31,8 @@ import org.testng.annotations.Test;
 /**
  * @author Tareq Sharafy (tareq.sharafy@sap.com)
  */
-public class RebaseTest extends BaseTest {
+public class RebaseTest extends JGitBaseTest {
 
-    private Git _mainGit;
     private Git _trackingGit;
     private GitConnection _testConnection;
 
@@ -43,19 +40,16 @@ public class RebaseTest extends BaseTest {
 
     @BeforeMethod
     protected void cloneRepo() throws Exception {
-        // Initialize stuff
-        Repository mainRepo = new FileRepository(new File(getConnection().getWorkingDir(), Constants.DOT_GIT));
-        _mainGit = new Git(mainRepo);
         // Create the tracking repository
         File trackingRepoDir = new File(getTarget().toFile(), "rebaseTrackerRepo");
         // Initialize a tracking repository
-        _trackingGit = Git.cloneRepository().setURI(mainRepo.getDirectory().getAbsolutePath())
+        _trackingGit = Git.cloneRepository().setURI(getGit().getRepository().getDirectory().getAbsolutePath())
                 .setDirectory(trackingRepoDir).call();
         forClean.add(trackingRepoDir);
         // Add a new file to the original repository
         addFile(ADDITIONAL_FILE_NAME, "content of another file!");
-        _mainGit.add().addFilepattern(ADDITIONAL_FILE_NAME).call();
-        _mainGit.commit().setMessage("adding file2.txt").call();
+        getGit().add().addFilepattern(ADDITIONAL_FILE_NAME).call();
+        getGit().commit().setMessage("adding file2.txt").call();
         // Fetch the changes to the tracking repository to make it ready for this test
         _trackingGit.fetch().call();
         // Test object
@@ -64,12 +58,11 @@ public class RebaseTest extends BaseTest {
 
     @AfterMethod
     void releaseStuff() {
-        _mainGit.close();
         _trackingGit.close();
     }
 
     private void validateTrackingHead() throws Exception {
-        ObjectId trackedHead = _mainGit.getRepository().resolve(Constants.HEAD);
+        ObjectId trackedHead = getGit().getRepository().resolve(Constants.HEAD);
         ObjectId trackingHead = _trackingGit.getRepository().resolve(Constants.HEAD);
         assertEquals(trackingHead, trackedHead);
     }
