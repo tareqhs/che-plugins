@@ -19,6 +19,8 @@ import org.eclipse.che.ide.ext.git.shared.BranchCheckoutRequest;
 import org.eclipse.che.ide.ext.git.shared.BranchCreateRequest;
 import org.eclipse.che.ide.ext.git.shared.BranchDeleteRequest;
 import org.eclipse.che.ide.ext.git.shared.BranchListRequest;
+import org.eclipse.che.ide.ext.git.shared.CherryPickRequest;
+import org.eclipse.che.ide.ext.git.shared.CherryPickResult;
 import org.eclipse.che.ide.ext.git.shared.CloneRequest;
 import org.eclipse.che.ide.ext.git.shared.CommitRequest;
 import org.eclipse.che.ide.ext.git.shared.DiffRequest;
@@ -32,12 +34,15 @@ import org.eclipse.che.ide.ext.git.shared.MergeResult;
 import org.eclipse.che.ide.ext.git.shared.MoveRequest;
 import org.eclipse.che.ide.ext.git.shared.PullRequest;
 import org.eclipse.che.ide.ext.git.shared.PushRequest;
+import org.eclipse.che.ide.ext.git.shared.RebaseRequest;
+import org.eclipse.che.ide.ext.git.shared.RebaseResult;
 import org.eclipse.che.ide.ext.git.shared.Remote;
 import org.eclipse.che.ide.ext.git.shared.RemoteAddRequest;
 import org.eclipse.che.ide.ext.git.shared.RemoteListRequest;
 import org.eclipse.che.ide.ext.git.shared.RemoteReference;
 import org.eclipse.che.ide.ext.git.shared.RemoteUpdateRequest;
 import org.eclipse.che.ide.ext.git.shared.ResetRequest;
+import org.eclipse.che.ide.ext.git.shared.RevertRequest;
 import org.eclipse.che.ide.ext.git.shared.Revision;
 import org.eclipse.che.ide.ext.git.shared.RmRequest;
 import org.eclipse.che.ide.ext.git.shared.Status;
@@ -172,6 +177,17 @@ public interface GitConnection extends Closeable {
     DiffPage diff(DiffRequest request) throws GitException;
 
     /**
+     * Reverts a list of commits given in the request. 
+     *
+     * @param request
+     *         revert request
+     * @throws GitException
+     *         if any error occurs
+     * @see RevertRequest
+     */
+    void revert(RevertRequest request) throws GitException;
+
+    /**
      * Fetch data from remote repository.
      *
      * @param request
@@ -231,6 +247,26 @@ public interface GitConnection extends Closeable {
      */
     MergeResult merge(MergeRequest request) throws GitException;
 
+    /**
+     * Rebase the current head.
+     * 
+     * @param request
+     *            The rebase request.
+     * @return The result of the rebase operation.
+     * @throws GitException
+     */
+    RebaseResult rebase(RebaseRequest request) throws GitException;
+
+    /**
+     * Cherry-pick some commits.
+     * 
+     * @param request
+     *            The rebase request.
+     * @return The result of the rebase operation.
+     * @throws GitException
+     */
+    CherryPickResult cherryPick(CherryPickRequest request) throws GitException;
+    
     /**
      * Move or rename file or directory.
      *

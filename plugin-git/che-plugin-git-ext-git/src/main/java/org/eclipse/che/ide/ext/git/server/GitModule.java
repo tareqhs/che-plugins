@@ -14,7 +14,7 @@ import org.eclipse.che.api.project.server.ProjectImporter;
 import org.eclipse.che.api.project.server.ValueProviderFactory;
 import org.eclipse.che.api.project.server.type.ProjectType;
 import org.eclipse.che.ide.ext.git.server.commons.GitRepositoryPrivacyChecker;
-import org.eclipse.che.ide.ext.git.server.nativegit.NativeGitConnectionFactory;
+import org.eclipse.che.ide.ext.git.server.jgit.JGitConnectionFactory;
 import org.eclipse.che.ide.ext.git.server.rest.BranchListWriter;
 import org.eclipse.che.ide.ext.git.server.rest.CommitMessageWriter;
 import org.eclipse.che.ide.ext.git.server.rest.GitService;
@@ -23,6 +23,7 @@ import org.eclipse.che.ide.ext.git.server.rest.RemoteListWriter;
 import org.eclipse.che.ide.ext.git.server.rest.StatusPageWriter;
 import org.eclipse.che.ide.ext.git.server.rest.TagListWriter;
 import org.eclipse.che.inject.DynaModule;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
 
@@ -54,6 +55,6 @@ public class GitModule extends AbstractModule {
         bind(StatusPageWriter.class);
         bind(TagListWriter.class);
 
-        bind(GitConnectionFactory.class).to(NativeGitConnectionFactory.class);
+        bind(GitConnectionFactory.class).to(JGitConnectionFactory.class);
     }
 }

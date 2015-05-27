@@ -42,6 +42,8 @@ import org.eclipse.che.ide.ext.git.shared.BranchCheckoutRequest;
 import org.eclipse.che.ide.ext.git.shared.BranchCreateRequest;
 import org.eclipse.che.ide.ext.git.shared.BranchDeleteRequest;
 import org.eclipse.che.ide.ext.git.shared.BranchListRequest;
+import org.eclipse.che.ide.ext.git.shared.CherryPickRequest;
+import org.eclipse.che.ide.ext.git.shared.CherryPickResult;
 import org.eclipse.che.ide.ext.git.shared.CloneRequest;
 import org.eclipse.che.ide.ext.git.shared.CommitRequest;
 import org.eclipse.che.ide.ext.git.shared.DiffRequest;
@@ -55,12 +57,15 @@ import org.eclipse.che.ide.ext.git.shared.MergeResult;
 import org.eclipse.che.ide.ext.git.shared.MoveRequest;
 import org.eclipse.che.ide.ext.git.shared.PullRequest;
 import org.eclipse.che.ide.ext.git.shared.PushRequest;
+import org.eclipse.che.ide.ext.git.shared.RebaseRequest;
+import org.eclipse.che.ide.ext.git.shared.RebaseResult;
 import org.eclipse.che.ide.ext.git.shared.Remote;
 import org.eclipse.che.ide.ext.git.shared.RemoteAddRequest;
 import org.eclipse.che.ide.ext.git.shared.RemoteListRequest;
 import org.eclipse.che.ide.ext.git.shared.RemoteReference;
 import org.eclipse.che.ide.ext.git.shared.RemoteUpdateRequest;
 import org.eclipse.che.ide.ext.git.shared.ResetRequest;
+import org.eclipse.che.ide.ext.git.shared.RevertRequest;
 import org.eclipse.che.ide.ext.git.shared.Revision;
 import org.eclipse.che.ide.ext.git.shared.RmRequest;
 import org.eclipse.che.ide.ext.git.shared.Status;
@@ -69,7 +74,6 @@ import org.eclipse.che.ide.ext.git.shared.Tag;
 import org.eclipse.che.ide.ext.git.shared.TagCreateRequest;
 import org.eclipse.che.ide.ext.git.shared.TagDeleteRequest;
 import org.eclipse.che.ide.ext.git.shared.TagListRequest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -751,5 +755,21 @@ public class NativeGitConnection implements GitConnection {
     @Override
     public void setOutputLineConsumerFactory(LineConsumerFactory gitOutputPublisherFactory) {
         nativeGit.setOutputLineConsumerFactory(gitOutputPublisherFactory);
+    }
+
+    @Override
+    public RebaseResult rebase(RebaseRequest request) throws GitException {
+        throw new GitException("Unsupported operation: rebase");
+    }
+
+    @Override
+    public void revert(RevertRequest request) throws GitException {
+        throw new GitException("Unsupported operation: revert");
+        
+    }
+    
+    @Override
+    public CherryPickResult cherryPick(CherryPickRequest request) throws GitException {
+        throw new GitException("Unsupported operation: cherry-pick");
     }
 }

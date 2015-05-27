@@ -18,6 +18,7 @@ import org.eclipse.che.ide.ext.git.server.GitConnectionFactory;
 import org.eclipse.che.ide.ext.git.server.GitException;
 import org.eclipse.che.ide.ext.git.server.nativegit.commands.EmptyGitCommand;
 import org.eclipse.che.ide.ext.git.server.nativegit.commands.ListFilesCommand;
+import org.eclipse.che.ide.ext.git.server.jgit.JGitConnectionFactory;
 import org.eclipse.che.ide.ext.git.shared.AddRequest;
 import org.eclipse.che.ide.ext.git.shared.Branch;
 import org.eclipse.che.ide.ext.git.shared.CommitRequest;
@@ -38,6 +39,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static org.eclipse.che.api.core.util.LineConsumerFactory.NULL;
@@ -46,6 +49,7 @@ import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.delete;
 import static java.nio.file.Files.exists;
 import static java.nio.file.Files.write;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -66,6 +70,8 @@ public abstract class BaseTest {
 
     @Mock
     private CredentialsLoader loader;
+    
+    protected static final String INITIAL_FILE_NAME = "README.txt";
 
     @BeforeMethod
     public void initRepository() throws Exception {
@@ -76,10 +82,10 @@ public abstract class BaseTest {
         init(repository);
         //setup connection
         user = newDTO(GitUser.class).withName("test_name").withEmail("test@email");
-        connectionFactory = new NativeGitConnectionFactory(null, loader, null);
-        connection = connectionFactory.getConnection(repository, user, NULL);
-        addFile(repository.toPath(), "README.txt", CONTENT);
-        connection.add(newDTO(AddRequest.class).withFilepattern(Arrays.asList("README.txt")));
+        connectionFactory = new JGitConnectionFactory(null);
+        connection = createConnection(repository);
+        addFile(repository.toPath(), INITIAL_FILE_NAME, CONTENT);
+        connection.add(newDTO(AddRequest.class).withFilepattern(Arrays.asList(INITIAL_FILE_NAME)));
         connection.commit(newDTO(CommitRequest.class).withMessage("Initial commit"));
         forClean.add(connection.getWorkingDir());
         EnvironmentContext.getCurrent().setUser(
@@ -147,6 +153,10 @@ public abstract class BaseTest {
         return connection;
     }
 
+    protected GitConnection createConnection(File gitWorkingDir) throws GitException {
+        return connectionFactory.getConnection(gitWorkingDir, user, NULL);
+    }
+
     protected <T> T newDTO(Class<T> dtoInterface) {
         return DtoFactory.getInstance().createDto(dtoInterface);
     }
@@ -198,5 +208,11 @@ public abstract class BaseTest {
                 fail("Cache not contains " + fName);
             }
         }
+    }
+    
+    protected static <T extends Comparable<T>> void assertUnorderedEquals(Collection<T> actual, List<T> expectedSorted) {
+        List<T> sortedActual = new ArrayList<T>(actual);
+        Collections.sort(sortedActual);
+        assertEquals(sortedActual, expectedSorted);
     }
 }

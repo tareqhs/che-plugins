@@ -49,6 +49,8 @@ import org.eclipse.che.ide.ext.git.shared.MergeResult;
 import org.eclipse.che.ide.ext.git.shared.MoveRequest;
 import org.eclipse.che.ide.ext.git.shared.PullRequest;
 import org.eclipse.che.ide.ext.git.shared.PushRequest;
+import org.eclipse.che.ide.ext.git.shared.RebaseRequest;
+import org.eclipse.che.ide.ext.git.shared.RebaseResult;
 import org.eclipse.che.ide.ext.git.shared.Remote;
 import org.eclipse.che.ide.ext.git.shared.RemoteAddRequest;
 import org.eclipse.che.ide.ext.git.shared.RemoteListRequest;
@@ -292,6 +294,19 @@ public class GitService {
         GitConnection gitConnection = getGitConnection();
         try {
             return gitConnection.merge(request);
+        } finally {
+            gitConnection.close();
+        }
+    }
+
+    @Path("rebase")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
+    public RebaseResult rebase(RebaseRequest request) throws ApiException {
+        GitConnection gitConnection = getGitConnection();
+        try {
+            return gitConnection.rebase(request);
         } finally {
             gitConnection.close();
         }
