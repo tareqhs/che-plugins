@@ -161,6 +161,10 @@ public abstract class BaseTest {
         return connection;
     }
 
+    protected GitConnection createConnection(File gitWorkingDir) throws GitException {
+        return connectionFactory.getConnection(gitWorkingDir, user, NULL);
+    }
+
     protected <T> T newDTO(Class<T> dtoInterface) {
         return DtoFactory.getInstance().createDto(dtoInterface);
     }

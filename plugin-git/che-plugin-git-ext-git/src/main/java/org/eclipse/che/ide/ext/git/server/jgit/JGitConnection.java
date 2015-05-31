@@ -51,6 +51,8 @@ import org.eclipse.che.ide.ext.git.shared.MergeResult;
 import org.eclipse.che.ide.ext.git.shared.MoveRequest;
 import org.eclipse.che.ide.ext.git.shared.PullRequest;
 import org.eclipse.che.ide.ext.git.shared.PushRequest;
+import org.eclipse.che.ide.ext.git.shared.RebaseRequest;
+import org.eclipse.che.ide.ext.git.shared.RebaseResult;
 import org.eclipse.che.ide.ext.git.shared.Remote;
 import org.eclipse.che.ide.ext.git.shared.RemoteAddRequest;
 import org.eclipse.che.ide.ext.git.shared.RemoteListRequest;
@@ -78,6 +80,7 @@ import org.eclipse.jgit.api.ListBranchCommand.ListMode;
 import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.RebaseCommand;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.RmCommand;
 import org.eclipse.jgit.api.TagCommand;
@@ -88,6 +91,7 @@ import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.NoFilepatternException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.errors.NoWorkTreeException;
+import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.PersonIdent;
@@ -538,6 +542,40 @@ public class JGitConnection implements GitConnection {
         } catch (GitAPIException e) {
             throw new GitException(e.getMessage(), e);
         }
+    }
+
+    @Override
+    public RebaseResult rebase(RebaseRequest request) throws GitException {
+        org.eclipse.jgit.api.RebaseResult jgitResult;
+        try {
+            // Match the operation
+            String upStream = null;
+            RebaseCommand.Operation op = RebaseCommand.Operation.BEGIN;
+            if (request.getOperation() != null) {
+                switch (request.getOperation()) {
+                case ABORT:
+                    op = RebaseCommand.Operation.ABORT;
+                    break;
+                case CONTINUE:
+                    op = RebaseCommand.Operation.CONTINUE;
+                    break;
+                case SKIP:
+                    op = RebaseCommand.Operation.SKIP;
+                    break;
+                default:
+                    throw new GitException("Unknown rebase operation " + request.getOperation());
+                }
+            } else {
+                // Infer the upstream
+                String branch = repository.getBranch();
+                upStream = BranchTrackingStatus.of(repository, branch).getRemoteTrackingBranch();
+            }
+            // Create a jgit command
+            jgitResult = getGit().rebase().setOperation(op).setUpstream(upStream).call();
+        } catch (GitAPIException | IOException e) {
+            throw new GitException(e.getMessage(), e);
+        }
+        return new JGitRebaseResult(jgitResult);
     }
 
     /** @see org.exoplatform.ide.git.server.GitConnection#mv(org.exoplatform.ide.git.shared.MoveRequest) */
